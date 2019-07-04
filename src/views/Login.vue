@@ -17,8 +17,9 @@
             v-model="loginFrom.password"
             prefix-icon="myicon myicon-key"
             placeholder="请输入密码"
+            type='password'
             clearable
-            @keyup.enter.native='loginsubmit'
+            @keyup.enter.native="loginsubmit"
           >请输入密码</el-input>
         </el-form-item>
         <el-form-item>
@@ -31,6 +32,9 @@
 
 
 <script>
+// 在script中进行模块方法的引入
+import { login } from '@/api/user_api.js'
+
 export default {
   data() {
     return {
@@ -61,7 +65,26 @@ export default {
       //这个参数就是用来标记当前验证是否通过，如果为true，则通过，否则不通过
       this.$refs.loginFrom.validate(valid => {
         if (valid) {
-          console.log("ok");
+          // 调用接口方法实现用户登录
+          login(this.loginFrom)
+          .then(res => {
+            console.log(res.data.meta.status);
+            if (res.data.meta.status === 200) {
+              //设置登录成功的弹框
+              this.$message({
+                type: 'success',
+                message: res.data.meta.msg
+              })
+              //跳转首页
+              this.$router.push({ name: 'home' })
+            }else {
+              this.$message({
+                type: 'warning',
+                message: res.data.meta.msg
+              })
+            }
+          })
+          
         } else {
             //设置数据报错弹框
           this.$message({
