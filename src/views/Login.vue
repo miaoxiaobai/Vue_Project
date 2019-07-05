@@ -70,6 +70,8 @@ export default {
           .then(res => {
             console.log(res.data.meta.status);
             if (res.data.meta.status === 200) {
+              //将token数据存储到本地
+              localStorage.setItem('heima_manager_token',res.data.data.token)
               //设置登录成功的弹框
               this.$message({
                 type: 'success',

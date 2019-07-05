@@ -5,6 +5,8 @@ import VueRouter from 'vue-router'
 // @ - 相当于src目录
 import Login from '@/views/Login.vue'
 import Home from '@/views/Home.vue'
+import Welcome from '@/views/welcome.vue'
+import Users from '@/views/users/index.vue'
 
 Vue.use(VueRouter)
 
@@ -23,7 +25,22 @@ var router = new VueRouter({
     {
       name: 'home',
       path: '/home',
-      component: Home
+      component: Home,
+      // 重定向
+      redirect: { path: '/home/wel' },
+      // 嵌套路由 - - 对应着Home组件中的router-view
+      children: [
+        {
+          // 嵌套路由不用添加/，否则会破坏嵌套层次结构
+          path: 'wel',
+          component: Welcome
+        },
+        {
+          name: 'Users',
+          path: 'users',
+          component: Users
+        }
+      ]
     }
   ]
 })
