@@ -1,4 +1,4 @@
-// 专门处理users用户管理
+// 专门处理users用户管理 - 接口方法
 
 // 引入
 import axios from 'axios'
@@ -35,5 +35,24 @@ export const getUserList = (pa) => {
   return axios({
     url: 'users',
     params: pa
+  })
+}
+
+// 添加用户数据
+export const addUser = (data) => {
+  return axios({
+    url: 'users',
+    method: 'post',
+    data
+  })
+}
+
+// 根据用户数据id删除单个用户
+export const delUser = (id) => {
+  return axios({
+    // 请求方法
+    method: 'delete',
+    // 请求路径
+    url: `users/${id}`
   })
 }
