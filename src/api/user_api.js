@@ -48,11 +48,29 @@ export const addUser = (data) => {
 }
 
 // 根据用户数据id删除单个用户
+// 增加(post)  删除(delete)  修改(put)  查询(get)
 export const delUser = (id) => {
   return axios({
     // 请求方法
     method: 'delete',
     // 请求路径
     url: `users/${id}`
+  })
+}
+
+// 修改用户状态
+export const updateUserState = (uid, type) => {
+  return axios({
+    url: `users/${uid}/state/${type}`,
+    method: 'put'
+  })
+}
+
+// 分配用户角色
+export const grantUserRole = (id, rid) => {
+  return axios({
+    method: 'put',
+    url: `users/${id}/role`,
+    data: { rid }
   })
 }

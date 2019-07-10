@@ -31,8 +31,14 @@
       <el-table-column prop="email" label="邮箱" width="280"></el-table-column>
       <el-table-column prop="mobile" label="电话"></el-table-column>
       <el-table-column label="用户状态" width="100">
-        <template>
-          <el-switch v-model="value2" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+        <!-- 用户状态值得绑定 -->
+        <template slot-scope="scope">
+          <el-switch
+            v-model="scope.row.mg_state"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            @change="changeUserState(scope.row.id,scope.row.mg_state)"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作">
@@ -41,10 +47,12 @@
             <el-button type="primary" icon="el-icon-edit"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
-            <el-button type="primary" icon="el-icon-share"></el-button>
+            <el-button type="primary" icon="el-icon-share"
+            @click="showGrandDialog(scope.row)"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
-            <el-button type="primary" icon="el-icon-delete" @click="deluserbyid(scope.row.id)"></el-button>
+            <el-button type="primary" icon="el-icon-delete"
+            @click="deluserbyid(scope.row.id)"></el-button>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -80,16 +88,53 @@
         <el-button type="primary" @click="addUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 分配角色对话框 -->
+    <el-dialog title="分配角色" :visible.sync="grantdialogFormVisible">
+      <el-form :model="grantForm" :label-width="'120px'">
+        <el-form-item label="用户名">
+          <el-input v-model="grantForm.username" auto-complete="off"
+          disabled="" style="width:100px"></el-input>
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="grantForm.rid" clearable placeholder="请选择">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="grantdialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="grantRoleSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 // 引入接口方法
-import { getUserList, addUser, delUser } from '@/api/user_api.js'
-
+import {
+  getUserList,
+  addUser,
+  delUser,
+  updateUserState,
+  grantUserRole
+} from '@/api/user_api.js'
+import { getAllRoleLlist } from '@/api/role_api.js'
 export default {
   data () {
     return {
+      value4: '',
+      roleList: [],
+      grantForm: {
+        username: '',
+        id: '',
+        rid: ''
+      },
+      grantdialogFormVisible: false,
       // 标记添加用户对话框的显示或隐藏
       addDialogFormVisible: false,
       // 添加用户数据对象
@@ -106,9 +151,7 @@ export default {
       // 当前页码
       pagenum: 1,
       // 每页显示的记录数
-      pagesize: 1,
-
-      value2: true,
+      pagesize: 3,
       userList: [],
       // 添加新增用户表单元素的验证规则
       rules: {
@@ -152,8 +195,62 @@ export default {
   // 设置表格的数据源
   mounted () {
     this.init()
+    // 获取所有角色列表数据
+    getAllRoleLlist()
+      .then(res => {
+        console.log(res)
+        if (res.data.meta.status === 200) {
+          this.roleList = res.data.data
+        }
+      })
   },
   methods: {
+    // 分配角色提交
+    grantRoleSubmit () {
+      // 判断是否选择了角色
+      if (!this.grantForm.rid) {
+        this.$message({
+          type: 'warning',
+          message: '请先选择角色'
+        })
+        return false
+      }
+      grantUserRole(this.grantForm.id, this.grantForm.rid)
+        .then(res => {
+          if (res.data.meta.status === 200) {
+            this.$message({
+              type: 'warning',
+              message: res.data.meta.msg
+            })
+            this.grantdialogFormVisible = false
+            // this.grantForm.rid = ''
+          }
+        })
+    },
+    // 显示分配角色对话框
+    showGrandDialog (row) {
+      console.log(row)
+      this.grantdialogFormVisible = true
+      this.grantForm.username = row.username
+      this.grantForm.id = row.id
+      // 实现下拉列表选项的展示
+      this.grantForm.rid = row.rid
+    },
+    // 角色下拉列表选项切换
+    // roleSelect (value) {
+    //   console.log(value, this.grantForm.rid)
+    // },
+    // 修改用户状态
+    changeUserState (id, type) {
+      updateUserState(id, type).then(res => {
+        if (res.data.meta.status === 200) {
+          this.$message({
+            type: 'success',
+            message: res.data.meta.msg
+          })
+        }
+      })
+    },
     //  删除单个用户
     deluserbyid (id) {
       // 给出删除用户提示
